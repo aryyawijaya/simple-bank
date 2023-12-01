@@ -47,6 +47,9 @@ test:
 psql-console:
 	docker exec -it postgres16-alpine psql -U root -d simple_bank
 
+server:
+	go run main.go
+
 .PHONY: 
 	pull-postgres \
 	start-postgres \
@@ -56,4 +59,5 @@ psql-console:
 	migrateup \
 	migratedown \
 	sqlc \
-	test
+	test \
+	server

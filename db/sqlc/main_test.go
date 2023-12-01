@@ -19,7 +19,7 @@ var testDB *sql.DB
 
 func TestMain(m *testing.M) {
 	var err error
-	
+
 	testDB, err = sql.Open(driverName, dataSourceName)
 	if err != nil {
 		log.Fatalf("Cannot connect to database: %v", err)

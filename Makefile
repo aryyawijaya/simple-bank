@@ -5,6 +5,7 @@ start-postgres:
 	docker \
 		run \
 		--name postgres16-alpine \
+		--network bank-network \
 		-p 5433:5432 \
 		-e POSTGRES_USER=root \
 		-e POSTGRES_PASSWORD=secretpassword \
@@ -50,6 +51,31 @@ psql-console:
 server:
 	go run main.go
 
+build-app-image:
+	docker build -t simple-bank:latest .
+
+start-app-dev:
+	docker \
+		run \
+		--name simple-bank \
+		-p 8080:8080 \
+		-d \
+		simple-bank:latest
+
+start-app-prod:
+	docker \
+		run \
+		--name simple-bank \
+		--network bank-network \
+		-p 8080:8080 \
+		-e GIN_MODE=release \
+		-e DB_SOURCE=postgresql://root:secretpassword@postgres16-alpine:5432/simple_bank?sslmode=disable \
+		-d \
+		simple-bank:latest
+
+logs-app:
+	docker logs -f simple-bank
+
 .PHONY: 
 	pull-postgres \
 	start-postgres \
@@ -60,4 +86,6 @@ server:
 	migratedown \
 	sqlc \
 	test \
-	server
+	server \
+	build-app-image \
+	start-app

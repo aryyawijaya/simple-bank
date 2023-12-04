@@ -76,6 +76,12 @@ start-app-prod:
 logs-app:
 	docker logs -f simple-bank
 
+compose-up:
+	docker compose up
+
+logs-all:
+	docker-compose logs -t -f
+
 .PHONY: 
 	pull-postgres \
 	start-postgres \

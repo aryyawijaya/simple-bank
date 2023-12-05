@@ -8,7 +8,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     ports:
       - "8080:8080"
     environment:
@@ -19,6 +19,6 @@ services:
       "/app/wait-for.sh",
       "postgres:5432",
       "--",
-      "/app/start.sh"
+      "/app/start-prod.sh"
     ]
     command: [ "/app/main" ]

@@ -74,10 +74,22 @@ start-app-prod:
 		simple-bank:latest
 
 logs-app:
-	docker logs -f simple-bank
+	docker logs -f simple-bank-api-1
 
-compose-up:
-	docker compose up
+compose-up-prod:
+	docker compose -f compose.prod.yaml up -d
+
+compose-down-prod:
+	docker compose -f compose.prod.yaml down
+
+compose-up-dev:
+	docker compose -f compose.dev.yaml up -d
+
+compose-down-dev:
+	docker compose -f compose.dev.yaml down
+
+delete-image:
+	docker rmi simple-bank-api
 
 logs-all:
 	docker-compose logs -t -f

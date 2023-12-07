@@ -94,6 +94,12 @@ delete-image:
 logs-all:
 	docker-compose logs -t -f
 
+mock:
+	mockgen \
+		-package mockdb \
+		-destination db/mock/store.go \
+		github.com/aryyawijaya/simple-bank/db/sqlc Store
+
 .PHONY: 
 	pull-postgres \
 	start-postgres \
@@ -106,4 +112,5 @@ logs-all:
 	test \
 	server \
 	build-app-image \
-	start-app
+	start-app \
+	mock \

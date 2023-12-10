@@ -1,4 +1,4 @@
-package api
+package account_test
 
 import (
 	"bytes"
@@ -8,14 +8,23 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	mockdb "github.com/aryyawijaya/simple-bank/db/mock"
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
+	"github.com/aryyawijaya/simple-bank/server"
 	"github.com/aryyawijaya/simple-bank/util"
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
+
+func TestMain(m *testing.M) {
+	gin.SetMode(gin.TestMode)
+
+	os.Exit(m.Run())
+}
 
 func TestGetAccountAPI(t *testing.T) {
 	account := randomAccount()
@@ -92,14 +101,14 @@ func TestGetAccountAPI(t *testing.T) {
 			tc.buildStubs(store)
 
 			// create test Server & send request
-			server := NewServer(store)
+			server := server.NewServer(store)
 			recorder := httptest.NewRecorder()
 			url := fmt.Sprintf("/accounts/%d", tc.accountID)
 
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
-			server.router.ServeHTTP(recorder, request)
+			server.Router.ServeHTTP(recorder, request)
 
 			// validate response
 			tc.checkResponse(t, recorder)

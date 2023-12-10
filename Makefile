@@ -43,7 +43,7 @@ sqlc:
 	sqlc generate
 
 test:
-	go test -v -cover ./...
+	go test -v -cover ./... -count=1
 
 psql-console:
 	docker exec -it postgres16-alpine psql -U root -d simple_bank
@@ -53,6 +53,9 @@ server:
 
 build-app-image:
 	docker build -t simple-bank:latest .
+
+format:
+	go fmt ./...
 
 start-app-dev:
 	docker \
@@ -94,6 +97,12 @@ delete-image:
 logs-all:
 	docker-compose logs -t -f
 
+mock:
+	mockgen \
+		-package mockdb \
+		-destination db/mock/store.go \
+		github.com/aryyawijaya/simple-bank/db/sqlc Store
+
 .PHONY: 
 	pull-postgres \
 	start-postgres \
@@ -106,4 +115,5 @@ logs-all:
 	test \
 	server \
 	build-app-image \
-	start-app
+	start-app \
+	mock \

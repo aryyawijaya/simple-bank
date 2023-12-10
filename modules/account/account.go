@@ -30,7 +30,7 @@ func NewAccountModule(store Store, wrapper modules.Wrapper) *AccountModule {
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
+	Currency string `json:"currency" binding:"required,currency"`
 }
 
 func (am *AccountModule) Create(ctx *gin.Context) {

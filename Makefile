@@ -25,19 +25,33 @@ createdb:
 dropdb:
 	docker exec -it postgres16-alpine dropdb simple_bank
 
-migrateup:
+migrateup-all:
 	migrate \
 		-path db/migration \
 		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
 		-verbose \
 		up
 
-migratedown:
+migrateup-1:
+	migrate \
+		-path db/migration \
+		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
+		-verbose \
+		up 1
+
+migratedown-all:
 	migrate \
 		-path db/migration \
 		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
 		-verbose \
 		down
+
+migratedown-1:
+	migrate \
+		-path db/migration \
+		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
+		-verbose \
+		down 1
 
 sqlc:
 	sqlc generate
@@ -53,9 +67,6 @@ server:
 
 build-app-image:
 	docker build -t simple-bank:latest .
-
-format:
-	go fmt ./...
 
 start-app-dev:
 	docker \
@@ -103,6 +114,9 @@ mock:
 		-destination db/mock/store.go \
 		github.com/aryyawijaya/simple-bank/db/sqlc Store
 
+format:
+	go fmt ./...
+
 query-update:
 	make sqlc mock
 
@@ -112,8 +126,10 @@ query-update:
 	logs-postgres \
 	createdb \
 	dropdb \
-	migrateup \
-	migratedown \
+	migrateup-all \
+	migrateup-1 \
+	migratedown-all \
+	migratedown-1 \
 	sqlc \
 	test \
 	server \

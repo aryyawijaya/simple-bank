@@ -82,11 +82,11 @@ func (um *UserModule) Create(ctx *gin.Context) {
 	}
 
 	resp := createUserResponse{
-		Username: createdUser.Username,
-		FullName: createdUser.FullName,
-		Email: createdUser.Email,
+		Username:          createdUser.Username,
+		FullName:          createdUser.FullName,
+		Email:             createdUser.Email,
 		PasswordChangedAt: createdUser.PasswordChangedAt,
-		CreatedAt: createdUser.CreatedAt,
+		CreatedAt:         createdUser.CreatedAt,
 	}
 
 	ctx.JSON(http.StatusCreated, resp)

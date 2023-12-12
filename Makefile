@@ -103,15 +103,9 @@ mock:
 		-destination db/mock/store.go \
 		github.com/aryyawijaya/simple-bank/db/sqlc Store
 
-<<<<<<< Updated upstream
-=======
-format:
-	go fmt ./...
-
 query-update:
 	make sqlc mock
 
->>>>>>> Stashed changes
 .PHONY: 
 	pull-postgres \
 	start-postgres \
@@ -126,3 +120,5 @@ query-update:
 	build-app-image \
 	start-app \
 	mock \
+	format \
+	query-update \

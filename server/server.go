@@ -3,7 +3,9 @@ package server
 import (
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules/account"
+	"github.com/aryyawijaya/simple-bank/modules/auth"
 	"github.com/aryyawijaya/simple-bank/modules/transfer"
+	"github.com/aryyawijaya/simple-bank/modules/user"
 	cutomvalidator "github.com/aryyawijaya/simple-bank/util/cutom-validator"
 	"github.com/aryyawijaya/simple-bank/util/wrapper"
 	"github.com/gin-gonic/gin"
@@ -28,6 +30,11 @@ func NewServer(store mydb.Store) *Server {
 
 	// dependencies
 	wrapper := wrapper.NewWrapper()
+	authHelper := auth.NewAuthHelper()
+
+	// users
+	um := user.NewUserModule(store, wrapper, authHelper)
+	router.POST("/users", um.Create)
 
 	// accounts
 	am := account.NewAccountModule(store, wrapper)

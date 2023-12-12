@@ -8,6 +8,7 @@ import (
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type Store interface {
@@ -48,6 +49,13 @@ func (am *AccountModule) Create(ctx *gin.Context) {
 
 	account, err := am.store.CreateAccount(ctx, arg)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, am.wrapper.ErrResp(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, am.wrapper.ErrResp(err))
 		return
 	}

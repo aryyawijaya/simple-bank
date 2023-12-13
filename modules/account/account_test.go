@@ -114,7 +114,6 @@ func TestGetAccountAPI(t *testing.T) {
 			tc.checkResponse(t, recorder)
 		})
 	}
-
 }
 
 func randomAccount() mydb.Account {

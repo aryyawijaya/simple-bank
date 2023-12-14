@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/aryyawijaya/simple-bank/modules/auth"
+	"github.com/aryyawijaya/simple-bank/modules/auth/password"
 	"github.com/aryyawijaya/simple-bank/util"
 	"github.com/stretchr/testify/require"
 )
 
-var ah = auth.NewAuthHelper()
+var ph = password.NewPassHelper()
 
 func createRandomUser(t *testing.T) User {
-	hashedPass, err := ah.HashPassword(util.RandomString(8))
+	hashedPass, err := ph.HashPassword(util.RandomString(8))
 	require.NoError(t, err)
 
 	arg := CreateUserParams{

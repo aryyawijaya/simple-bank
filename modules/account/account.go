@@ -3,10 +3,12 @@ package account
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules"
+	"github.com/aryyawijaya/simple-bank/modules/auth/token"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
@@ -30,7 +32,7 @@ func NewAccountModule(store Store, wrapper modules.Wrapper) *AccountModule {
 }
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
+	// Owner    string `json:"owner" binding:"required"`
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
@@ -41,8 +43,10 @@ func (am *AccountModule) Create(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(modules.AuthorizationPayloadKey).(*token.Payload)
+
 	arg := mydb.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
@@ -84,6 +88,13 @@ func (am *AccountModule) Get(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(modules.AuthorizationPayloadKey).(*token.Payload)
+	if account.Owner != authPayload.Username {
+		err := errors.New("account does not belong to the authenticated user")
+		ctx.JSON(http.StatusForbidden, am.wrapper.ErrResp(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -99,7 +110,10 @@ func (am *AccountModule) GetAll(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(modules.AuthorizationPayloadKey).(*token.Payload)
+
 	arg := mydb.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}

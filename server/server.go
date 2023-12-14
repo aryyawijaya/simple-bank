@@ -2,12 +2,9 @@ package server
 
 import (
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
-	"github.com/aryyawijaya/simple-bank/modules/account"
-	"github.com/aryyawijaya/simple-bank/modules/auth"
-	"github.com/aryyawijaya/simple-bank/modules/transfer"
-	"github.com/aryyawijaya/simple-bank/modules/user"
-	cutomvalidator "github.com/aryyawijaya/simple-bank/util/cutom-validator"
-	"github.com/aryyawijaya/simple-bank/util/wrapper"
+	"github.com/aryyawijaya/simple-bank/modules/auth/token"
+	"github.com/aryyawijaya/simple-bank/util"
+	customvalidator "github.com/aryyawijaya/simple-bank/util/cutom-validator"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
@@ -15,40 +12,30 @@ import (
 
 // Server serves HTTP request for banking services
 type Server struct {
-	Router *gin.Engine
+	Router     *gin.Engine
+	store      mydb.Store
+	Config     *util.Config
+	TokenMaker token.Maker
 }
 
 // NewServer create Server and setup the routing
-func NewServer(store mydb.Store) *Server {
-	server := &Server{}
-	router := gin.Default()
+func NewServer(store mydb.Store, config *util.Config) (*Server, error) {
+	server := &Server{
+		store:  store,
+		Config: config,
+	}
 
 	// custom validator
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		v.RegisterValidation("currency", cutomvalidator.ValidCurrency)
+		v.RegisterValidation("currency", customvalidator.ValidCurrency)
 	}
 
-	// dependencies
-	wrapper := wrapper.NewWrapper()
-	authHelper := auth.NewAuthHelper()
+	err := server.setupRouter()
+	if err != nil {
+		return nil, err
+	}
 
-	// users
-	um := user.NewUserModule(store, wrapper, authHelper)
-	router.POST("/users", um.Create)
-
-	// accounts
-	am := account.NewAccountModule(store, wrapper)
-	router.POST("/accounts", am.Create)
-	router.GET("/accounts/:id", am.Get)
-	router.GET("/accounts", am.GetAll)
-
-	// transfer
-	tm := transfer.NewTransferModule(store, wrapper)
-	router.POST("/transfers", tm.CreateTransfer)
-
-	server.Router = router
-
-	return server
+	return server, nil
 }
 
 func (server *Server) Start(address string) error {

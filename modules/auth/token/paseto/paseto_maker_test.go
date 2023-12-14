@@ -38,11 +38,11 @@ func TestExpiredPasetoToken(t *testing.T) {
 	maker, err := paseto.NewPasetoMaker(util.RandomString(32))
 	require.NoError(t, err)
 
-	jwtToken, err := maker.CreateToken(util.RandomString(5), -time.Minute)
+	pasetoToken, err := maker.CreateToken(util.RandomString(5), -time.Minute)
 	require.NoError(t, err)
-	require.NotEmpty(t, jwtToken)
+	require.NotEmpty(t, pasetoToken)
 
-	payload, err := maker.VerifyToken(jwtToken)
+	payload, err := maker.VerifyToken(pasetoToken)
 	require.Error(t, err)
 	require.EqualError(t, err, token.ErrTokenExpired.Error())
 	require.Nil(t, payload)

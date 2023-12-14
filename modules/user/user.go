@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"net/http"
-	"time"
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules"
@@ -15,21 +14,21 @@ type Store interface {
 	CreateUser(ctx context.Context, arg mydb.CreateUserParams) (mydb.User, error)
 }
 
-type AuthHelper interface {
+type PassHelper interface {
 	HashPassword(password string) (string, error)
 }
 
 type UserModule struct {
 	store      Store
 	wrapper    modules.Wrapper
-	authHelper AuthHelper
+	passHelper PassHelper
 }
 
-func NewUserModule(store Store, wrapper modules.Wrapper, authHelper AuthHelper) *UserModule {
+func NewUserModule(store Store, wrapper modules.Wrapper, passHelper PassHelper) *UserModule {
 	return &UserModule{
 		store:      store,
 		wrapper:    wrapper,
-		authHelper: authHelper,
+		passHelper: passHelper,
 	}
 }
 
@@ -40,14 +39,6 @@ type createUserRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 }
 
-type createUserResponse struct {
-	Username          string    `json:"username"`
-	FullName          string    `json:"fullName"`
-	Email             string    `json:"email"`
-	PasswordChangedAt time.Time `json:"passwordChangedAt"`
-	CreatedAt         time.Time `json:"createdAt"`
-}
-
 func (um *UserModule) Create(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -55,7 +46,7 @@ func (um *UserModule) Create(ctx *gin.Context) {
 		return
 	}
 
-	hashedPass, err := um.authHelper.HashPassword(req.Password)
+	hashedPass, err := um.passHelper.HashPassword(req.Password)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, um.wrapper.ErrResp(err))
 		return
@@ -81,13 +72,7 @@ func (um *UserModule) Create(ctx *gin.Context) {
 		return
 	}
 
-	resp := createUserResponse{
-		Username:          createdUser.Username,
-		FullName:          createdUser.FullName,
-		Email:             createdUser.Email,
-		PasswordChangedAt: createdUser.PasswordChangedAt,
-		CreatedAt:         createdUser.CreatedAt,
-	}
+	resp := NewUserResp(&createdUser)
 
 	ctx.JSON(http.StatusCreated, resp)
 }

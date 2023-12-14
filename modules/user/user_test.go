@@ -13,35 +13,19 @@ import (
 
 	mockdb "github.com/aryyawijaya/simple-bank/db/mock"
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
-	"github.com/aryyawijaya/simple-bank/modules/auth"
-	"github.com/aryyawijaya/simple-bank/server"
-	"github.com/aryyawijaya/simple-bank/util"
+	"github.com/aryyawijaya/simple-bank/modules/auth/password"
+	testhelper "github.com/aryyawijaya/simple-bank/util/test-helper"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
 
-var ah = auth.NewAuthHelper()
+var ph = password.NewPassHelper()
 
 func TestMain(m *testing.M) {
 	gin.SetMode(gin.TestMode)
 
 	os.Exit(m.Run())
-}
-
-func randomUser(t *testing.T) (user mydb.User, pass string) {
-	pass = util.RandomString(8)
-	hashedPass, err := ah.HashPassword(pass)
-	require.NoError(t, err)
-
-	user = mydb.User{
-		Username:       util.RandomString(5),
-		HashedPassword: hashedPass,
-		FullName:       util.RandomString(5),
-		Email:          util.RandomEmail(),
-	}
-
-	return
 }
 
 func requireBodyMatchUser(t *testing.T, body *bytes.Buffer, user mydb.User) {
@@ -71,7 +55,7 @@ func (e eqCreateUserParamsMatcher) Matches(x any) bool {
 		return false
 	}
 
-	err := ah.CheckPassword(arg.HashedPassword, e.password)
+	err := ph.CheckPassword(arg.HashedPassword, e.password)
 	if err != nil {
 		return false
 	}
@@ -89,7 +73,7 @@ func EqCreateUserParams(arg mydb.CreateUserParams, password string) gomock.Match
 }
 
 func TestCreate(t *testing.T) {
-	user, pass := randomUser(t)
+	user, pass := testhelper.RandomUser(t)
 
 	testCases := []struct {
 		name          string
@@ -135,7 +119,7 @@ func TestCreate(t *testing.T) {
 			tc.buildStubs(store)
 
 			// create test Server & send request
-			server := server.NewServer(store)
+			server := testhelper.NewTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			// marshal body data to JSON

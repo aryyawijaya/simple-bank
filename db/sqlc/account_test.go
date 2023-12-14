@@ -84,21 +84,25 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestListAccount(t *testing.T) {
+	var lastAccount Account
 	for i := 0; i < 5; i++ {
-		createRandomAccount(t)
+		lastAccount = createRandomAccount(t)
 	}
 
-	limit, offset := 3, 2
+	limit, offset := 3, 0
 	arg := ListAccountsParams{
+		Owner:  lastAccount.Owner,
 		Limit:  int32(limit),
 		Offset: int32(offset),
 	}
 
 	accounts, err := testQueries.ListAccounts(context.Background(), arg)
 	require.NoError(t, err)
-	require.Len(t, accounts, limit)
+	// require.Len(t, accounts, limit)
+	require.NotEmpty(t, accounts)
 
 	for _, account := range accounts {
 		require.NotEmpty(t, account)
+		require.Equal(t, lastAccount.Owner, account.Owner)
 	}
 }

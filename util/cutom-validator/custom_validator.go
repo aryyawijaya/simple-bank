@@ -1,4 +1,4 @@
-package cutomvalidator
+package customvalidator
 
 import (
 	"github.com/aryyawijaya/simple-bank/util"

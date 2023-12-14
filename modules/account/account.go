@@ -3,11 +3,14 @@ package account
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules"
+	"github.com/aryyawijaya/simple-bank/modules/auth/token"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type Store interface {
@@ -29,8 +32,8 @@ func NewAccountModule(store Store, wrapper modules.Wrapper) *AccountModule {
 }
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"`
+	// Owner    string `json:"owner" binding:"required"`
+	Currency string `json:"currency" binding:"required,currency"`
 }
 
 func (am *AccountModule) Create(ctx *gin.Context) {
@@ -40,14 +43,23 @@ func (am *AccountModule) Create(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(modules.AuthorizationPayloadKey).(*token.Payload)
+
 	arg := mydb.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
 
 	account, err := am.store.CreateAccount(ctx, arg)
 	if err != nil {
+		if pqErr, ok := err.(*pq.Error); ok {
+			switch pqErr.Code.Name() {
+			case "foreign_key_violation", "unique_violation":
+				ctx.JSON(http.StatusForbidden, am.wrapper.ErrResp(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, am.wrapper.ErrResp(err))
 		return
 	}
@@ -76,6 +88,13 @@ func (am *AccountModule) Get(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(modules.AuthorizationPayloadKey).(*token.Payload)
+	if account.Owner != authPayload.Username {
+		err := errors.New("account does not belong to the authenticated user")
+		ctx.JSON(http.StatusForbidden, am.wrapper.ErrResp(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -91,7 +110,10 @@ func (am *AccountModule) GetAll(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(modules.AuthorizationPayloadKey).(*token.Payload)
+
 	arg := mydb.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}

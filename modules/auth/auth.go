@@ -6,11 +6,15 @@ import (
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules"
+	"github.com/aryyawijaya/simple-bank/modules/auth/token"
 	"github.com/aryyawijaya/simple-bank/util"
+	"github.com/google/uuid"
 )
 
 type Store interface {
 	GetUser(ctx context.Context, username string) (mydb.User, error)
+	CreateSession(ctx context.Context, arg mydb.CreateSessionParams) (mydb.Session, error)
+	GetSession(ctx context.Context, id uuid.UUID) (mydb.Session, error)
 }
 
 type PassHelper interface {
@@ -18,7 +22,8 @@ type PassHelper interface {
 }
 
 type Token interface {
-	CreateToken(username string, duration time.Duration) (string, error)
+	CreateToken(username string, duration time.Duration) (string, *token.Payload, error)
+	VerifyToken(token string) (*token.Payload, error)
 }
 
 type AuthModule struct {

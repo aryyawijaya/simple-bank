@@ -47,6 +47,7 @@ func (s *Server) setupRouter() error {
 	// auth
 	authModule := auth.NewAuthModule(s.Config, wrapper, s.store, passHelper, s.TokenMaker)
 	router.POST("/login", authModule.Login)
+	router.POST("/tokens/renew-access", authModule.RenewAccessToken)
 
 	s.Router = router
 

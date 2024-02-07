@@ -1,3 +1,5 @@
+DB_URL = postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable
+
 pull-postgres:
 	docker pull postgres:16.0-alpine3.18
 
@@ -28,28 +30,28 @@ dropdb:
 migrateup-all:
 	migrate \
 		-path db/migration \
-		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
+		-database "${DB_URL}" \
 		-verbose \
 		up
 
 migrateup-1:
 	migrate \
 		-path db/migration \
-		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
+		-database "${DB_URL}" \
 		-verbose \
 		up 1
 
 migratedown-all:
 	migrate \
 		-path db/migration \
-		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
+		-database "${DB_URL}" \
 		-verbose \
 		down
 
 migratedown-1:
 	migrate \
 		-path db/migration \
-		-database "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable" \
+		-database "${DB_URL}" \
 		-verbose \
 		down 1
 
@@ -120,6 +122,12 @@ format:
 query-update:
 	make sqlc mock
 
+db-docs:
+	dbdocs build doc/db.dbml
+
+db-schema:
+	dbml2sql doc/db.dbml --postgres -o doc/schema.sql
+
 .PHONY: 
 	pull-postgres \
 	start-postgres \
@@ -138,3 +146,5 @@ query-update:
 	mock \
 	format \
 	query-update \
+	db-docs \
+	db-schema \

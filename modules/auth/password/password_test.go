@@ -3,10 +3,10 @@ package password_test
 import (
 	"testing"
 
+	"github.com/aryyawijaya/simple-bank/entity"
 	"github.com/aryyawijaya/simple-bank/modules/auth/password"
 	"github.com/aryyawijaya/simple-bank/util"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var ph = password.NewPassHelper()
@@ -26,7 +26,7 @@ func TestPassword(t *testing.T) {
 	wrongPass := util.RandomString(8)
 	err = ph.CheckPassword(hashedPass, wrongPass)
 	require.Error(t, err)
-	require.EqualError(t, err, bcrypt.ErrMismatchedHashAndPassword.Error())
+	require.EqualError(t, err, entity.ErrPasswordInvalid.Error())
 
 	// rehash password
 	hashedPass2, err := ph.HashPassword(password)

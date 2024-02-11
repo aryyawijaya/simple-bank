@@ -1,15 +1,16 @@
-package mydb
+package mydb_test
 
 import (
 	"context"
 	"fmt"
 	"testing"
 
+	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransferTx(t *testing.T) {
-	store := NewStore(testDB)
+	store := mydb.NewStore(testDB)
 
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
@@ -20,14 +21,14 @@ func TestTransferTx(t *testing.T) {
 	amount := int64(10)
 
 	errs := make(chan error)
-	results := make(chan TransferTxResult)
+	results := make(chan mydb.TransferTxResult)
 
 	for i := 0; i < n; i++ {
 		// txName := fmt.Sprintf("tx %d", i+1)
 		go func() {
 			// ctx := context.WithValue(context.Background(), txKey, txName)
 			ctx := context.Background()
-			result, err := store.TransferTx(ctx, TransferTxParams{
+			result, err := store.TransferTx(ctx, mydb.TransferTxParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
 				Amount:        amount,
@@ -129,7 +130,7 @@ func TestTransferTx(t *testing.T) {
 }
 
 func TestTransferTxDeadlockByOrderQuery(t *testing.T) {
-	store := NewStore(testDB)
+	store := mydb.NewStore(testDB)
 
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
@@ -158,7 +159,7 @@ func TestTransferTxDeadlockByOrderQuery(t *testing.T) {
 
 		go func() {
 			ctx := context.Background()
-			_, err := store.TransferTx(ctx, TransferTxParams{
+			_, err := store.TransferTx(ctx, mydb.TransferTxParams{
 				FromAccountID: fromAccountID,
 				ToAccountID:   toAccountID,
 				Amount:        amount,

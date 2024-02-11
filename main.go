@@ -7,8 +7,8 @@ import (
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/pb"
-	"github.com/aryyawijaya/simple-bank/server"
 	servergrpc "github.com/aryyawijaya/simple-bank/server-grpc"
+	"github.com/aryyawijaya/simple-bank/server-http"
 	"github.com/aryyawijaya/simple-bank/util"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
-	"github.com/aryyawijaya/simple-bank/server-http"
+	"github.com/aryyawijaya/simple-bank/server-http-gin"
 	"github.com/aryyawijaya/simple-bank/util"
 	"github.com/stretchr/testify/require"
 )

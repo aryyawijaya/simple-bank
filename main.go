@@ -1,15 +1,18 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"net"
+	"net/http"
 
 	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/pb"
 	servergrpc "github.com/aryyawijaya/simple-bank/server-grpc"
-	"github.com/aryyawijaya/simple-bank/server-http"
+	"github.com/aryyawijaya/simple-bank/server-http-gin"
 	"github.com/aryyawijaya/simple-bank/util"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -33,6 +36,7 @@ func main() {
 	}
 
 	store := mydb.NewStore(conn)
+	go runGatewayServer(config, store)
 	runGRPCServer(config, store)
 	// runGinServer(config, store)
 }
@@ -64,6 +68,44 @@ func runGRPCServer(config util.Config, store mydb.Store) {
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		log.Fatalf("Cannot start gRPC server: %v\n", err)
+	}
+}
+
+func runGatewayServer(config util.Config, store mydb.Store) {
+	// create Implementation RPC server
+	server, err := servergrpc.NewServer(store, &config)
+	if err != nil {
+		log.Fatalf("Cannot create the server: %v\n", err)
+	}
+
+	// create gRPC mux
+	grpcMux := runtime.NewServeMux()
+
+	// register gRPC mux to HTTP handler gateway
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		log.Fatalf("Cannot register HTTP handler server: %v\n", err)
+	}
+
+	// create HTTP mux, to receive HTTP request from client
+	mux := http.NewServeMux()
+
+	// reroute to gRPC mux
+	mux.Handle("/", grpcMux)
+
+	// start server to listen HTTP request
+	// create listener
+	listener, err := net.Listen("tcp", config.HTTPServerAddress)
+	if err != nil {
+		log.Fatalf("Cannot create listener: %v\n", err)
+	}
+	// server HTTP gateway
+	log.Printf("Start HTTP gateway server at %s\n", listener.Addr().String())
+	err = http.Serve(listener, mux)
+	if err != nil {
+		log.Fatalf("Cannot start HTTP gateway server: %v\n", err)
 	}
 }
 

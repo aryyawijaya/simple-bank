@@ -95,6 +95,10 @@ func runGatewayServer(config util.Config, store mydb.Store) {
 	// reroute to gRPC mux
 	mux.Handle("/", grpcMux)
 
+	// serve static resources (swagger docs)
+	fserver := http.FileServer(http.Dir("./doc/swagger"))
+	mux.Handle("/swagger/", http.StripPrefix("/swagger/", fserver))
+
 	// start server to listen HTTP request
 	// create listener
 	listener, err := net.Listen("tcp", config.HTTPServerAddress)

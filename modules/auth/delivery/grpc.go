@@ -5,6 +5,7 @@ import (
 
 	authusecase "github.com/aryyawijaya/simple-bank/modules/auth/use-case"
 	"github.com/aryyawijaya/simple-bank/pb"
+	utilgrpc "github.com/aryyawijaya/simple-bank/util/grpc"
 	"github.com/aryyawijaya/simple-bank/util/wrapper"
 	"google.golang.org/grpc/status"
 )
@@ -21,15 +22,13 @@ func NewAuthGRPC(authUseCase authusecase.UseCase) *AuthGRPC {
 }
 
 func (u *AuthGRPC) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
-	/*
-		TODO:
-		1. add userAgen & clientIP using gRPC
-	*/
+	mtdt := utilgrpc.ExtractMetadata(ctx)
+	
 	dto := &authusecase.LoginDto{
 		Username:  req.GetUsername(),
 		Password:  req.GetPassword(),
-		UserAgent: "",
-		ClientIP:  "",
+		UserAgent: mtdt.UserAgent,
+		ClientIP:  mtdt.ClientIP,
 	}
 	loggedUser, err := u.authUseCase.Login(ctx, dto)
 	if err != nil {

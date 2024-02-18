@@ -1,4 +1,4 @@
-package mydb
+package mydb_test
 
 import (
 	"database/sql"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/util"
 	_ "github.com/lib/pq"
 )
@@ -15,7 +16,7 @@ import (
 // 	dataSourceName = "postgresql://root:secretpassword@localhost:5433/simple_bank?sslmode=disable"
 // )
 
-var testQueries *Queries
+var testQueries *mydb.Queries
 var testDB *sql.DB
 
 func TestMain(m *testing.M) {
@@ -31,7 +32,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Cannot connect to database: %v", err)
 	}
 
-	testQueries = New(testDB)
+	testQueries = mydb.New(testDB)
 
 	os.Exit(m.Run())
 }

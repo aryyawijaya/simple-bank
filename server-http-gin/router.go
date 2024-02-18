@@ -3,11 +3,15 @@ package server
 import (
 	"github.com/aryyawijaya/simple-bank/middlewares"
 	"github.com/aryyawijaya/simple-bank/modules/account"
-	"github.com/aryyawijaya/simple-bank/modules/auth"
+	authdelivery "github.com/aryyawijaya/simple-bank/modules/auth/delivery"
 	"github.com/aryyawijaya/simple-bank/modules/auth/password"
+	authrepo "github.com/aryyawijaya/simple-bank/modules/auth/repo"
 	"github.com/aryyawijaya/simple-bank/modules/auth/token/paseto"
+	authusecase "github.com/aryyawijaya/simple-bank/modules/auth/use-case"
 	"github.com/aryyawijaya/simple-bank/modules/transfer"
-	"github.com/aryyawijaya/simple-bank/modules/user"
+	userdelivery "github.com/aryyawijaya/simple-bank/modules/user/delivery"
+	userrepo "github.com/aryyawijaya/simple-bank/modules/user/repo"
+	userusecase "github.com/aryyawijaya/simple-bank/modules/user/use-case"
 	"github.com/aryyawijaya/simple-bank/util/wrapper"
 	"github.com/gin-gonic/gin"
 )
@@ -31,8 +35,9 @@ func (s *Server) setupRouter() error {
 	authRouter := router.Group("/").Use(middleware.AuthMiddleware(s.TokenMaker))
 
 	// users
-	um := user.NewUserModule(s.store, wrapper, passHelper)
-	router.POST("/users", um.Create)
+	userRepo := userrepo.NewUserRepo(s.store)
+	userUseCase := userusecase.NewUserUseCase(passHelper, userRepo)
+	userdelivery.NewUserHttp(router, userUseCase)
 
 	// accounts
 	am := account.NewAccountModule(s.store, wrapper)
@@ -45,9 +50,9 @@ func (s *Server) setupRouter() error {
 	authRouter.POST("/transfers", tm.CreateTransfer)
 
 	// auth
-	authModule := auth.NewAuthModule(s.Config, wrapper, s.store, passHelper, s.TokenMaker)
-	router.POST("/login", authModule.Login)
-	router.POST("/tokens/renew-access", authModule.RenewAccessToken)
+	authRepo := authrepo.NewAuthRepo(s.store)
+	authUseCase := authusecase.NewAuthUseCase(authRepo, passHelper, s.TokenMaker, s.Config)
+	authdelivery.NewAuthHttp(router, authUseCase)
 
 	s.Router = router
 

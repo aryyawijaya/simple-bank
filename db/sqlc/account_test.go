@@ -1,4 +1,4 @@
-package mydb
+package mydb_test
 
 import (
 	"context"
@@ -6,14 +6,15 @@ import (
 	"testing"
 	"time"
 
+	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/util"
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomAccount(t *testing.T) Account {
+func createRandomAccount(t *testing.T) mydb.Account {
 	createdUser := createRandomUser(t)
 
-	arg := CreateAccountParams{
+	arg := mydb.CreateAccountParams{
 		Owner:    createdUser.Username,
 		Balance:  util.RandomBalance(),
 		Currency: util.RandomCurrency(),
@@ -54,7 +55,7 @@ func TestGetAccount(t *testing.T) {
 func TestUpdateAccount(t *testing.T) {
 	createdAccount := createRandomAccount(t)
 
-	arg := UpdateAccountBalanceParams{
+	arg := mydb.UpdateAccountBalanceParams{
 		ID:      createdAccount.ID,
 		Balance: util.RandomBalance(),
 	}
@@ -84,13 +85,13 @@ func TestDeleteAccount(t *testing.T) {
 }
 
 func TestListAccount(t *testing.T) {
-	var lastAccount Account
+	var lastAccount mydb.Account
 	for i := 0; i < 5; i++ {
 		lastAccount = createRandomAccount(t)
 	}
 
 	limit, offset := 3, 0
-	arg := ListAccountsParams{
+	arg := mydb.ListAccountsParams{
 		Owner:  lastAccount.Owner,
 		Limit:  int32(limit),
 		Offset: int32(offset),

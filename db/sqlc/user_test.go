@@ -1,9 +1,10 @@
-package mydb
+package mydb_test
 
 import (
 	"context"
 	"testing"
 
+	mydb "github.com/aryyawijaya/simple-bank/db/sqlc"
 	"github.com/aryyawijaya/simple-bank/modules/auth/password"
 	"github.com/aryyawijaya/simple-bank/util"
 	"github.com/stretchr/testify/require"
@@ -11,11 +12,11 @@ import (
 
 var ph = password.NewPassHelper()
 
-func createRandomUser(t *testing.T) User {
+func createRandomUser(t *testing.T) mydb.User {
 	hashedPass, err := ph.HashPassword(util.RandomString(8))
 	require.NoError(t, err)
 
-	arg := CreateUserParams{
+	arg := mydb.CreateUserParams{
 		Username:       util.RandomOwner(),
 		HashedPassword: hashedPass,
 		FullName:       util.RandomOwner(),

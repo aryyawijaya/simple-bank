@@ -3,12 +3,20 @@ package password
 import (
 	"fmt"
 
+	"github.com/aryyawijaya/simple-bank/entity"
+	authusecase "github.com/aryyawijaya/simple-bank/modules/auth/use-case"
+	userusecase "github.com/aryyawijaya/simple-bank/modules/user/use-case"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type IPassHelper interface {
+	userusecase.PassHelper
+	authusecase.PassHelper
+}
+
 type PassHelper struct{}
 
-func NewPassHelper() *PassHelper {
+func NewPassHelper() IPassHelper {
 	return &PassHelper{}
 }
 
@@ -21,5 +29,13 @@ func (ph *PassHelper) HashPassword(password string) (string, error) {
 }
 
 func (ph *PassHelper) CheckPassword(hashedPass string, pass string) error {
-	return bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(pass))
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPass), []byte(pass))
+	if err != nil {
+		if err == bcrypt.ErrMismatchedHashAndPassword {
+			return entity.ErrPasswordInvalid
+		}
+		return err
+	}
+
+	return nil
 }

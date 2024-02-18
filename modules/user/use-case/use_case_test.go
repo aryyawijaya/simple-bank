@@ -1,4 +1,4 @@
-package user_test
+package userusecase_test
 
 import (
 	"bytes"

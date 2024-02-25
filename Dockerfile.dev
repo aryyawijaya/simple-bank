@@ -3,14 +3,14 @@ FROM golang:1.21.4-alpine3.18 AS builder
 WORKDIR /app
 COPY . .
 RUN apk add curl
-RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+# RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
 RUN curl -L https://github.com/cosmtrek/air/releases/download/v1.49.0/air_1.49.0_linux_amd64.tar.gz | tar xvz
 RUN wget https://go.dev/dl/go1.21.4.linux-amd64.tar.gz
 
 # Runner stage
 FROM alpine:3.18
 WORKDIR /app
-COPY --from=builder /app/migrate /usr/local/bin/migrate
+# COPY --from=builder /app/migrate /usr/local/bin/migrate
 COPY --from=builder /app/air /usr/local/bin/air
 COPY --from=builder /app/go1.21.4.linux-amd64.tar.gz .
 COPY app.env .

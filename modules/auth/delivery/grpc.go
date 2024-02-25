@@ -22,8 +22,14 @@ func NewAuthGRPC(authUseCase authusecase.UseCase) *AuthGRPC {
 }
 
 func (u *AuthGRPC) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
+	// validate request
+	violations := validateLoginRequest(req)
+	if len(violations) != 0 {
+		return nil, utilgrpc.InvalidArgumentErr(violations)
+	}
+
 	mtdt := utilgrpc.ExtractMetadata(ctx)
-	
+
 	dto := &authusecase.LoginDto{
 		Username:  req.GetUsername(),
 		Password:  req.GetPassword(),
